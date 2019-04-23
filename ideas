@@ -1,0 +1,5 @@
+Si quieren que el auto no sea un punto, sino un conjunto de puntos:
+
+En el archivo server.cpp
+Modificar el atributo car y la funcion move_car de la clase Player
+Modificar el check_collision

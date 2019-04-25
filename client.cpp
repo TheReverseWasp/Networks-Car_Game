@@ -2,29 +2,29 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#include <stdlib.h> 
-#include <stdio.h> 
-#include <string.h> 
-#include <errno.h> 
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <errno.h>
 #include <string>
 #include <iostream>
 #include <unistd.h>
 #include <thread>
-#include <ncurses.h> 
+#include <ncurses.h>
 
 #include <chrono>
 #include <functional>
 
 using namespace std;
 
-//exemplary key codes for ncurses getch(): 
-#define K_ENTER	0x0A 
-#define K_ENTER2	0x0D //ncurses only (and very strange :|) 
-#define K_ESC	0x1B 
-#define K_DOWN	0x102 
-#define K_UP	0x103 
-#define K_LEFT	0x104 
-#define K_RIGHT	0x105 
+//exemplary key codes for ncurses getch():
+#define K_ENTER	0x0A
+#define K_ENTER2	0x0D //ncurses only (and very strange :|)
+#define K_ESC	0x1B
+#define K_DOWN	0x102
+#define K_UP	0x103
+#define K_LEFT	0x104
+#define K_RIGHT	0x105
 
 
 #define LIM_X 80
@@ -67,7 +67,7 @@ void dibujar()
 	string punto;
 	bool print_track = track_time;
 	string track;
-		
+
 	clear();
 	for(int i=0; i<LIM_Y; i++)
 	{
@@ -117,16 +117,16 @@ void write_socket(int my_socket, bool &stop)
 		{
 			write(my_socket, "MT", 2);
 		}
-		//Izquierda - LEFT 
+		//Izquierda - LEFT
 		else if(key == K_LEFT)
 		{
 			write(my_socket, "ML", 2);
 		}
-		//Derecha - RIGHT 
+		//Derecha - RIGHT
 		else if(key == K_RIGHT)
 		{
 			write(my_socket, "MR", 2);
-		}		
+		}
 	}while( stop==false );
 }
 
@@ -159,7 +159,7 @@ void read_socket(int my_socket, bool &stop)
 			}
 			bzero(buffer, MAP_SIZE); //cleaning buffer
 		}
-	}	
+	}
 }
 
 
@@ -169,7 +169,7 @@ int main()
 	struct sockaddr_in stSockAddr;
 	int Res;
 	int SocketFD = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
-	
+
 	if (-1 == SocketFD)
 	{
 		perror("cannot create socket");
@@ -213,10 +213,11 @@ int main()
 		cout<<"Usuario: "<<usuario<<endl;
 		mensaje = "A";
 		mensaje += usuario;
-		write(SocketFD, mensaje.c_str(), 2); //mandamos el mensaje de login al server	
+		write(SocketFD, mensaje.c_str(), 2); //mandamos el mensaje de login al server
 		//comprueba respuesta del log in
 		read(SocketFD, answer_buffer, 1);
-		if(strcmp(answer_buffer,"O")==0)//login ok
+
+    if(answer_buffer[0] == 'O')//login ok
 		{
 			cout<<"Login is Ok"<<endl;
 			stop = true;
@@ -227,37 +228,37 @@ int main()
 			stop = false;
 		}
 	}
-	
+
 
 	stop = false;
 
 	//Iniciamos ventana de juego
-	initscr(); 
-	cbreak(); 
-	noecho(); 
-	keypad( stdscr, TRUE ); 
+	initscr();
+	cbreak();
+	noecho();
+	keypad( stdscr, TRUE );
 	move( 0, 0 );
-	
+
 	resize_term(LIM_Y, LIM_X+2);
-	
+
 	//This is what I send/write
-	thread(write_socket, SocketFD, ref(stop)).detach();		
+	thread(write_socket, SocketFD, ref(stop)).detach();
 
 	//This is what I receive/read
 	thread(read_socket, SocketFD, ref(stop)).detach();
 
 	//Dibujo el mapa cada 100 milisegundos
 	timer_start(dibujar, 100);
- 
-	//waiting for the end	
+
+	//waiting for the end
 	while(stop==false)
 	{
 	}
 
-	
+
 	shutdown(SocketFD, SHUT_RDWR);
 	close(SocketFD);
-	keypad(stdscr, FALSE); 
+	keypad(stdscr, FALSE);
 	endwin();
 	return 0;
 }
